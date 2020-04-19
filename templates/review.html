@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    submit review
+{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+        <form class="form-group" action="{{ url_for('review') }}" method="post">
+            <label for="review_text">Write a review:</label>
+            <input type="text" class="form-control" id="review_text"  placeholder="Type your review here..." name="review">
+            <small id="emailHelp" class="form-text text-muted">Your review will be available for other's to see.</small>
+
+            <label for="exampleFormControlSelect1">Star rating</label>
+            <select class="form-control" id="exampleFormControlSelect1" name="rating">
+              <option>1</option>
+              <option>2</option>
+              <option>3</option>
+              <option>4</option>
+              <option>5</option>
+            </select>
+
+        </form>
+
+    </div>
+
+{% endblock %}

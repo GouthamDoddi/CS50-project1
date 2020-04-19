@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Books
+{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+            <div class="row">
+                  <!-- /.col-lg-3 -->
+
+                  <div class="col-lg-9">
+
+                  {% for key in result[0] %}
+                    <div class="card mt-4">
+                      <div class="card-body">
+                        <h3 class="card-title">{{ key['title'] }}</h3>
+                        <h4>{{ key['author'] }}, {{ key['year'] }}</h4>
+                        <p class="card-text">{{ key['total_reviews'] }} users have reviewed</p>
+                          <small>ISBN: {{ key['isbn'] }}</small><hr>
+                          <label for="input-1" class="control-label">Average rating:</label>
+                          <div class="rating">
+                              <span>☆</span><span>☆</span><span>☆</span><span>☆</span><span>☆</span>
+                          </div>
+                        {{ key['average_rating'] }} stars
+                      </div>
+                    </div>
+                    <!-- /.card -->
+                  {% endfor %}
+
+                  <div class="card card-outline-secondary my-4">
+                      <div class="card-header">
+                        Book Reviews
+                      </div>
+                      {% for review in result[1] %}
+                        {% if review is none %}
+                            <div class="container">
+                                <h5>No reviews yet :(</h5><br>
+                                <br>
+                            </div>
+
+                        {% else %}
+                          <div class="card-body">
+                              <p>{{ review[1] }}</p>
+                              <small>{{ review[3] }}</small>
+                              <small class="text-muted">Posted by {{ review[4] }}</small>
+                              <hr>
+                          </div>
+                          <br>
+                        {% endif %}
+                      {% endfor %}
+
+
+                      {% for post in result[2] %}
+                          <div class="container">
+                              <form class='form-group' action="{{ url_for('adding_review') }}" method="post">
+                                  <label for="review_text">Write a review:</label>
+                                  <input type="text" class="form-control" id="review_text"
+                                         placeholder="Type your review here..." name="review">
+                                  <small id="emailHelp" class="form-text text-muted">
+                                      Your review will be available for other's to see.
+                                  </small>
+                                  <input name="reviewed_by" type="hidden" value="{{ post['reviewed_by'] }}">
+                                  <input name="book" type="hidden" value="{{ post['book'] }}">
+                                  <label for="exampleFormControlSelect1">Star rating</label>
+                                  <select class="form-control" id="exampleFormControlSelect1" name="rating">
+                                      <option>1</option>
+                                      <option>2</option>
+                                      <option>3</option>
+                                      <option>4</option>
+                                      <option>5</option>
+                                  </select>
+                                  <br>
+                                  <button class="btn btn-info">Post review</button>
+                              </form>
+                          </div>
+                      {% endfor %}
+                  </div>
+                    <!-- /.card -->
+
+                  </div>
+                  <!-- /.col-lg-9 -->
+
+                </div>
+    </div>
+
+{% endblock %}

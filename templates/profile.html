@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}
+    ERROR
+{% endblock %}
+
+{% block content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification is-danger">
+                <small style="color: green;">{{ messages[0] }}</small>
+            </div>
+        {% endif %}
+    {% endwith %}
+{% endblock %}

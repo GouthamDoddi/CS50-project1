@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  LogOut
+{% endblock %}
+
+{% block content %}
+    <div class=" container">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification is-danger">
+                <small style="color: green;">{{ messages[0] }}</small>
+            </div>
+        {% endif %}
+    {% endwith %}
+        <h1 id="login_header">LogOut</h1>
+        <form class="login_form" action="{{ url_for('logout') }}" method="post">
+            <button class="btn btn-primary">LogOut</button>
+        </form>
+    </div>
+{% endblock %}

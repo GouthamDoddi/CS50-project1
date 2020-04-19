@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}
+    LogIn
+{% endblock %}
+
+{% block content %}
+    <div class=" container">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification is-danger">
+                <small style="color: green;">{{ messages[0] }}</small>
+            </div>
+        {% endif %}
+    {% endwith %}
+        <h1 id="login_header">LogIn</h1>
+        <form class="login_form" action="{{ url_for('login') }}" method="post">
+            <input type="text" placeholder="Username" name="username">
+            <input type="password" name="password">
+            <button class="btn btn-primary">Login</button>
+        </form>
+    </div>
+{% endblock %}
