@@ -32,9 +32,10 @@
             <ul class="navbar-nav mr-auto">
                     {% if session['logged_in'] %}
                         <li class="nav-item active">
-                            <a class="nav-link" href="{{ url_for('books') }}">
-                                Books
-                                <span class="sr-only">(current)</span></a>
+                            <form class="form-inline my-2 my-lg-0" action="{{ url_for('books') }}" method="post">
+                                <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="keyword">
+                                <button class="btn btn-outline-success" type="submit">Search books</button>
+                            </form><span class="sr-only">(current)</span>
                         </li>
                          <li class="nav-item active">
                             <a class="nav-link" href="{{ url_for('logout') }}">
@@ -57,10 +58,6 @@
                     <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">API</a>
                 </li>
             </ul>
-        <form class="form-inline my-2 my-lg-0" action="{{ url_for('books') }}" method="post">
-            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="keyword">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-        </form>
       </div>
     </nav>
     {% block content %}

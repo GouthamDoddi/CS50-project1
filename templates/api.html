@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}
+
+{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+        <form class="form-group" action="{{ url_for('api') }}" method="get">
+            <input class="form-control" type="text" name="isbns" placeholder="ISBN">
+            <button class="btn btn-info">Submit</button>
+        </form>
+    </div>
+
+{% endblock %}

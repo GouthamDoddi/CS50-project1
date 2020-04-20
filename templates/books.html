@@ -16,20 +16,19 @@
                     <div class="card mt-4">
                       <div class="card-body">
                         <h3 class="card-title">{{ key['title'] }}</h3>
-                        <h4>{{ key['author'] }}, {{ key['year'] }}</h4>
-                        <p class="card-text">{{ key['total_reviews'] }} users have reviewed</p>
+                        <h4>{{ key['author'] }}, {{ key['published_on'] }}</h4>
+                          <p class="card-text">{{ key['total_reviews'] }} users have reviewed</p>
                           <small>ISBN: {{ key['isbn'] }}</small><hr>
-                          <label for="input-1" class="control-label">Average rating:</label>
-                          <div class="rating">
-                              <span>☆</span><span>☆</span><span>☆</span><span>☆</span><span>☆</span>
-                          </div>
-                        {{ key['average_rating'] }} stars
+                          <h5 class="control-label">Average rating:</h5>
+                          <h4>{{ key['average_rating'] }} </h4>
+                          <small>is the average rating.</small>
+
                       </div>
                     </div>
                     <!-- /.card -->
-                  {% endfor %}
+                      <!--/ reviews and review post -->
 
-                  <div class="card card-outline-secondary my-4">
+                      <div class="card card-outline-secondary my-4">
                       <div class="card-header">
                         Book Reviews
                       </div>
@@ -41,43 +40,52 @@
                             </div>
 
                         {% else %}
-                          <div class="card-body">
-                              <p>{{ review[1] }}</p>
-                              <small>{{ review[3] }}</small>
-                              <small class="text-muted">Posted by {{ review[4] }}</small>
-                              <hr>
-                          </div>
+                            {% for each_review in review %}
+                                {% if key['isbn'] == each_review[2] %}
+                                      <div class="card-body">
+                                          <p>{{ each_review[1] }}</p>
+                                          <small>Stars rated {{ each_review[3] }}</small>
+                                          <small class="text-muted">Posted by {{ each_review[4] }}</small>
+                                          <hr>
+                                      </div>
+                                {% endif %}
+                            {% endfor %}
                           <br>
                         {% endif %}
                       {% endfor %}
 
 
                       {% for post in result[2] %}
-                          <div class="container">
-                              <form class='form-group' action="{{ url_for('adding_review') }}" method="post">
-                                  <label for="review_text">Write a review:</label>
-                                  <input type="text" class="form-control" id="review_text"
-                                         placeholder="Type your review here..." name="review">
-                                  <small id="emailHelp" class="form-text text-muted">
-                                      Your review will be available for other's to see.
-                                  </small>
-                                  <input name="reviewed_by" type="hidden" value="{{ post['reviewed_by'] }}">
-                                  <input name="book" type="hidden" value="{{ post['book'] }}">
-                                  <label for="exampleFormControlSelect1">Star rating</label>
-                                  <select class="form-control" id="exampleFormControlSelect1" name="rating">
-                                      <option>1</option>
-                                      <option>2</option>
-                                      <option>3</option>
-                                      <option>4</option>
-                                      <option>5</option>
-                                  </select>
-                                  <br>
-                                  <button class="btn btn-info">Post review</button>
-                              </form>
-                          </div>
+                          {% if post['book'] == key['isbn'] %}
+                              <div class="container">
+                                  <form class='form-group' action="{{ url_for('adding_review') }}" method="post">
+                                      <label for="review_text">Write a review:</label>
+                                      <input type="text" class="form-control" id="review_text"
+                                             placeholder="Type your review here..." name="review">
+                                      <small id="emailHelp" class="form-text text-muted">
+                                          Your review will be available for other's to see.
+                                      </small>
+                                      <input name="reviewed_by" type="hidden" value="{{ post['reviewed_by'] }}">
+                                      <input name="book" type="hidden" value="{{ post['book'] }}">
+                                      <label for="exampleFormControlSelect1">Star rating</label>
+                                      <select class="form-control" id="exampleFormControlSelect1" name="rating">
+                                          <option>1</option>
+                                          <option>2</option>
+                                          <option>3</option>
+                                          <option>4</option>
+                                          <option>5</option>
+                                      </select>
+                                      <br>
+                                      <button class="btn btn-info">Post review</button>
+                                  </form>
+                              </div>
+                          {% endif %}
                       {% endfor %}
                   </div>
                     <!-- /.card -->
+                  {% endfor %}
+
+
 
                   </div>
                   <!-- /.col-lg-9 -->

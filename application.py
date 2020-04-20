@@ -1,7 +1,8 @@
 import os
+import requests
 from flask import (Flask, render_template, request,
                    redirect, url_for,
-                   flash, session)
+                   flash, session, jsonify)
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -30,7 +31,7 @@ db = scoped_session(sessionmaker(bind=engine))
 
 @app.route("/")
 def index():
-    return "Login or registere to vew the content in the site."
+    return render_template('LogIn.html')
 
 
 def logged_in(some_func):
@@ -129,42 +130,72 @@ def logout():
 @app.route("/books", methods=['GET', 'POST'])
 @logged_out
 def books():
+    global isbn
+    isbn = []
     result = []
     books = []
     reviews = []
     post_reviews = []
     if request.method == 'POST':
+
+        # book query
         keyword = request.form.get('keyword')
+        print("{} is the key".format(keyword))
         results = db.execute("""SELECT * FROM book WHERE isbn LIKE '%{}%'  OR title LIKE '%{}%' OR author LIKE '%{}%'"""
                              .format(keyword, keyword, keyword)).fetchall()
-        for key in results:
-            review = db.execute("""SELECT * FROM review WHERE book = :isbn""", {'isbn': key[3]}).fetchone()
+        print(f"{results} is the matching books data")
+
+        # comments query
+        for key2 in results:
+            review = db.execute("""SELECT * FROM review WHERE book = :isbn""", {'isbn': key2[3]}).fetchall()
 
             # creating dict objects for post_reviews list
-            post_review_dict = {}
-            post_review_dict['book'] = key[3]
-            post_review_dict['reviewed_by'] = session['logged_in']
+            post_review_dict = {'book': key2[3], 'reviewed_by': session['logged_in']}
             post_reviews.append(post_review_dict)
 
             print(review)
 
             reviews.append(review)
-            # adding foreign keys to review dict
+        print(reviews)
 
-            d = dict(key.items())
-            if d['average_rating'] is None:
-                d['average_rating'] = 0
-            if d['total_reviews'] is None:
-                d['total_reviews'] = 0
-                result.append(d)
-                books.append(d['isbn'])
-                # converted lists to dictionaries
+        # adding avg rating and no of reviews from site user review data
+        # for review in reviews:
+        #     if review is not []:
+        #         for each_review in review:
+        #             if each_review is []:
+        #                 continue
+        #             else:
+        #                 list_of_ratings.append(each_review[3])
+        #                 isbn = each_review[2]
+        #         total_reviews = len(list_of_ratings)
+        #         print(total_reviews)
+        #         if total_reviews == 0:
+        #             average_rating = 0
+        #             isbn = None
+        #         else:
+        #             average_rating = sum(list_of_ratings) // total_reviews
+        #         print(average_rating)
+        #         print(isbn)
+        #           db.execute("""UPDATE book SET average_rating = :average_rating, total_reviews = :total_reviews
+        #                    WHERE isbn=:isbn""",
+        #                     {'average_rating': average_rating, 'total_reviews': total_reviews, 'isbn': isbn})
+        #           db.commit()
+
+        for key in results:
+            # adding foreign keys to review dict
+            print(key)
+
+            books.append(key[3])
+            res = requests.get("https://www.goodreads.com/book/review_counts.json",
+                               params={"key": "3HOY8QuwJY4iFDPh6YbQ", "isbns": key[3]})
+            json_result = res.json()
+            key_d = dict(key.items())
+            key_d['total_reviews'] = json_result['books'][0]['ratings_count']
+            key_d['average_rating'] = json_result['books'][0]['average_rating']
+            result.append(key_d)
+
         print(result)
-        # for book in books:
-        #         review = db.execute("""SELECT * FROM review WHERE book = :isbn""", {'isbn': book}).fetchone()
-        #         if review is not None:
-        #             reviews.append(review)
-        # print(reviews)
+
         return render_template('books.html', result=[result, reviews, post_reviews])
 
 
@@ -176,12 +207,12 @@ def adding_review():
         rating = request.form.get('rating')
         reviewed_by = request.form.get('reviewed_by')
         review_obj = db.execute("""SELECT * FROM review WHERE reviewed_by = :reviewed_by AND book = :book""",
-                      {'reviewed_by': reviewed_by, 'book': book}).fetchone()
+                                {'reviewed_by': reviewed_by, 'book': book}).fetchone()
         if review_obj is None:
             try:
                 db.execute("""INSERT INTO review(review, book, rating, reviewed_by) 
                         VALUES(:review, :book, :rating, :reviewed_by)""",
-                            {'review': review, 'book': book, 'rating': rating, 'reviewed_by': reviewed_by})
+                           {'review': review, 'book': book, 'rating': rating, 'reviewed_by': reviewed_by})
                 db.commit()
                 print('done')
             except:
@@ -197,5 +228,17 @@ def adding_review():
         return redirect(url_for('books'))
 
 
+@app.route('/api/<isbns>')
+def books_api(isbns):
+    print(isbns)
+    book_data = db.execute("""SELECT * FROM book WHERE isbn=:isbn""", {'isbn': isbns}).fetchone()
+    print(book_data)
+    if book_data is None:
+        return ("<h1> no books with such isbn </h1>")
 
-
+    def creating_dict(row):
+        api_dict = {'title': row[0], 'author': row[1], 'year': row[2], 'isbn': row[3], 'average_rating': row[4],
+                    'total_reviews': row[5]}
+        return api_dict
+    json_obj = (creating_dict(book_data))
+    return json_obj
