@@ -1,3 +1,2 @@
 # Project 1
-
-Web Programming with Python and JavaScript
+Created a website using flask whth api
