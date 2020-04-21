@@ -34,7 +34,7 @@ def index():
     return render_template('LogIn.html')
 
 
-def logged_in(some_func):
+def logged_out(some_func):
     def wrap_func():
         if session['logged_in'] is not None:
             flash('User {} must log out first'.format(session['logged_in']))
@@ -46,7 +46,7 @@ def logged_in(some_func):
     return wrap_func
 
 
-def logged_out(some_func):
+def logged_in(some_func):
     def wrap_func():
         if session['logged_in'] is None:
             flash('User must login first!')
@@ -59,7 +59,7 @@ def logged_out(some_func):
 
 
 @app.route("/register", methods=['GET', 'POST'])
-@logged_in
+@logged_out
 def register():
     if request.method == 'POST':
         # getting info
@@ -83,7 +83,7 @@ def register():
 
 
 @app.route("/login", methods=['POST', 'GET'])
-@logged_in
+@logged_out
 def login():
     if request.method == 'POST':
         # get info
@@ -114,7 +114,7 @@ def login():
 
 
 @app.route("/logout", methods=['GET', 'POST'])
-@logged_out
+@logged_in
 def logout():
     if session['logged_in'] is None:
         flash('User must login first!')
@@ -128,7 +128,7 @@ def logout():
 
 
 @app.route("/books", methods=['GET', 'POST'])
-@logged_out
+@logged_in
 def books():
     global isbn
     isbn = []
@@ -138,14 +138,15 @@ def books():
     post_reviews = []
     if request.method == 'POST':
 
-        # book query
+        # The below func gets the keyword that will be used to search for matching books
         keyword = request.form.get('keyword')
         print("{} is the key".format(keyword))
         results = db.execute("""SELECT * FROM book WHERE isbn LIKE '%{}%'  OR title LIKE '%{}%' OR author LIKE '%{}%'"""
                              .format(keyword, keyword, keyword)).fetchall()
         print(f"{results} is the matching books data")
 
-        # comments query
+        # The below func helps us to display all the site users's comments under
+        # each book
         for key2 in results:
             review = db.execute("""SELECT * FROM review WHERE book = :isbn""", {'isbn': key2[3]}).fetchall()
 
@@ -181,8 +182,8 @@ def books():
         #                     {'average_rating': average_rating, 'total_reviews': total_reviews, 'isbn': isbn})
         #           db.commit()
 
+        # the below fuc gets info fron good reads about reviews and displays it on site
         for key in results:
-            # adding foreign keys to review dict
             print(key)
 
             books.append(key[3])
@@ -201,6 +202,7 @@ def books():
 
 @app.route("/adding_review", methods=['GET', 'POST'])
 def adding_review():
+    # The route takes care of checking and posting the review data by the site users.
     if request.method == 'POST':
         review = request.form.get('review')
         book = request.form.get('book')
@@ -230,15 +232,15 @@ def adding_review():
 
 @app.route('/api/<isbns>')
 def books_api(isbns):
+    # this route lets users get json data from the site.
     print(isbns)
     book_data = db.execute("""SELECT * FROM book WHERE isbn=:isbn""", {'isbn': isbns}).fetchone()
     print(book_data)
     if book_data is None:
-        return ("<h1> no books with such isbn </h1>")
+        return "<h1> no books with such isbn </h1>"
 
     def creating_dict(row):
-        api_dict = {'title': row[0], 'author': row[1], 'year': row[2], 'isbn': row[3], 'average_rating': row[4],
-                    'total_reviews': row[5]}
+        api_dict = {'title': row[0], 'author': row[1], 'year': row[2], 'isbn': row[3]}
         return api_dict
     json_obj = (creating_dict(book_data))
     return json_obj
