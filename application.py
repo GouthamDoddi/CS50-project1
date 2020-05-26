@@ -7,7 +7,7 @@ from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 import sqlalchemy
-from models import db
+from .models import db
 
 app = Flask(__name__)
 
@@ -36,7 +36,7 @@ def index():
 
 def logged_out(some_func):
     def wrap_func():
-      if 'logged_in' not in session.key():
+      if 'logged_in' not in session:
         return some_func()
       else:
           if session['logged_in'] is not None:
