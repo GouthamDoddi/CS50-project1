@@ -36,14 +36,17 @@ def index():
 
 def logged_out(some_func):
     def wrap_func():
-        if session['logged_in'] is not None:
-            flash('User {} must log out first'.format(session['logged_in']))
-            return render_template('profile.html')
-        else:
-            return some_func()
+      if 'logged_in' not in session.key():
+        return some_func()
+      else:
+          if session['logged_in'] is not None:
+              flash('User {} must log out first'.format(session['logged_in']))
+              return render_template('profile.html')
+          else:
+              return some_func()
 
     wrap_func.__name__ = some_func.__name__
-    return wrap_func
+    return wrap_fun
 
 
 def logged_in(some_func):
