@@ -46,7 +46,7 @@ def logged_out(some_func):
               return some_func()
 
     wrap_func.__name__ = some_func.__name__
-    return wrap_func
+    return wrap_fun
 
 
 def logged_in(some_func):
