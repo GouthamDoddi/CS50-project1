@@ -36,14 +36,14 @@ def index():
 
 def logged_out(some_func):
     def wrap_func():
-      if 'logged_in' not in session:
-        return some_func()
-      else:
-          if session['logged_in'] is not None:
-              flash('User {} must log out first'.format(session['logged_in']))
-              return render_template('profile.html')
-          else:
-              return some_func()
+        if 'logged_in' not in session:
+            return some_func()
+        else:
+            if session['logged_in'] is not None:
+                flash('User {} must log out first'.format(session['logged_in']))
+                return render_template('profile.html')
+            else:
+                return some_func()
 
     wrap_func.__name__ = some_func.__name__
     return wrap_func
@@ -51,11 +51,14 @@ def logged_out(some_func):
 
 def logged_in(some_func):
     def wrap_func():
-        if session['logged_in'] is None:
-            flash('User must login first!')
-            return render_template('Login.html')
-        else:
+        if 'logged_in' not in session:
             return some_func()
+        else:
+            if session['logged_in'] is None:
+                flash('User must login first!')
+                return render_template('Login.html')
+            else:
+                return some_func()
 
     wrap_func.__name__ = some_func.__name__
     return wrap_func
@@ -185,7 +188,7 @@ def books():
         #                     {'average_rating': average_rating, 'total_reviews': total_reviews, 'isbn': isbn})
         #           db.commit()
 
-        # the below fuc gets info fron good reads about reviews and displays it on site
+        # the below fuc gets info from good reads about reviews and displays it on site
         for key in results:
             print(key)
 
@@ -245,5 +248,6 @@ def books_api(isbns):
     def creating_dict(row):
         api_dict = {'title': row[0], 'author': row[1], 'year': row[2], 'isbn': row[3]}
         return api_dict
+
     json_obj = (creating_dict(book_data))
     return json_obj
