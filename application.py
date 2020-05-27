@@ -56,7 +56,7 @@ def logged_in(some_func):
         else:
             if session['logged_in'] is None:
                 flash('User must login first!')
-                return render_template('Login.html')
+                return render_template('LogIn.html')
             else:
                 return some_func()
 
@@ -84,7 +84,7 @@ def register():
         else:
             print(f"The {username} and {password} have been added into the database.")
             flash(f"User '{username}' has been registered! Try logging in.")
-            return render_template('logIn.html')
+            return render_template('LogIn.html')
     return render_template("register.html")
 
 
