@@ -116,7 +116,7 @@ def login():
                 flash("Improper credentials!")
                 return render_template('profile.html')
 
-    return render_template("login.html")
+    return render_template("LogIn.html")
 
 
 @app.route("/logout", methods=['GET', 'POST'])
