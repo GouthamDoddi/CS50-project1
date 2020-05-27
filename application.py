@@ -7,7 +7,8 @@ from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 import sqlalchemy
-from models import db
+from .models import db
+import flask
 
 app = Flask(__name__, template_folder='templates')
 
@@ -114,7 +115,7 @@ def login():
                 return render_template("profile.html")
             else:
                 flash("Improper credentials!")
-                return render_template('profile.html')
+                return render_template('LogIn.html')
 
     return render_template("LogIn.html")
 
@@ -151,63 +152,69 @@ def books():
                              .format(keyword, keyword, keyword)).fetchall()
         print(f"{results} is the matching books data")
 
+
         # The below func helps us to display all the site users's comments under
         # each book
-        for key2 in results:
-            review = db.execute("""SELECT * FROM review WHERE book = :isbn""", {'isbn': key2[3]}).fetchall()
+        if results:
+            for key2 in results:
+                review = db.execute("""SELECT * FROM review WHERE book = :isbn""", {'isbn': key2["isbn"]}).fetchall()
 
-            # creating dict objects for post_reviews list
-            post_review_dict = {'book': key2[3], 'reviewed_by': session['logged_in']}
-            post_reviews.append(post_review_dict)
+                # creating dict object that is later used to check the the review's post data.
+                post_review_dict = {'book': key2["isbn"], 'reviewed_by': session['logged_in']}
+                post_reviews.append(post_review_dict)
 
-            print(review)
+                print(review)
 
-            if not review:
-                review = "Whoops... No reviews yet!"
+                if not review:
+                    review = "Whoops... No reviews yet!"
 
-                reviews.append(review)
+                    reviews.append(review)
+                else:
+                    reviews.append(review)
 
-        print(reviews)
+            print(reviews)
 
-        # adding avg rating and no of reviews from site user review data
-        # for review in reviews:
-        #     if review is not []:
-        #         for each_review in review:
-        #             if each_review is []:
-        #                 continue
-        #             else:
-        #                 list_of_ratings.append(each_review[3])
-        #                 isbn = each_review[2]
-        #         total_reviews = len(list_of_ratings)
-        #         print(total_reviews)
-        #         if total_reviews == 0:
-        #             average_rating = 0
-        #             isbn = None
-        #         else:
-        #             average_rating = sum(list_of_ratings) // total_reviews
-        #         print(average_rating)
-        #         print(isbn)
-        #           db.execute("""UPDATE book SET average_rating = :average_rating, total_reviews = :total_reviews
-        #                    WHERE isbn=:isbn""",
-        #                     {'average_rating': average_rating, 'total_reviews': total_reviews, 'isbn': isbn})
-        #           db.commit()
+            # adding avg rating and no of reviews from site user review data
+            # for review in reviews:
+            #     if review is not []:
+            #         for each_review in review:
+            #             if each_review is []:
+            #                 continue
+            #             else:
+            #                 list_of_ratings.append(each_review[3])
+            #                 isbn = each_review[2]
+            #         total_reviews = len(list_of_ratings)
+            #         print(total_reviews)
+            #         if total_reviews == 0:
+            #             average_rating = 0
+            #             isbn = None
+            #         else:
+            #             average_rating = sum(list_of_ratings) // total_reviews
+            #         print(average_rating)
+            #         print(isbn)
+            #           db.execute("""UPDATE book SET average_rating = :average_rating, total_reviews = :total_reviews
+            #                    WHERE isbn=:isbn""",
+            #                     {'average_rating': average_rating, 'total_reviews': total_reviews, 'isbn': isbn})
+            #           db.commit()
 
-        # the below fuc gets info from good reads about reviews and displays it on site
-        for key in results:
-            print(key)
+            # the below fuc gets info from good reads about reviews and displays it on site
+            for key in results:
+                print(key)
 
-            books.append(key[3])
-            res = requests.get("https://www.goodreads.com/book/review_counts.json",
-                               params={"key": "3HOY8QuwJY4iFDPh6YbQ", "isbns": key[3]})
-            json_result = res.json()
-            key_d = dict(key.items())
-            key_d['total_reviews'] = json_result['books'][0]['ratings_count']
-            key_d['average_rating'] = json_result['books'][0]['average_rating']
-            result.append(key_d)
+                books.append(key[3])
+                res = requests.get("https://www.goodreads.com/book/review_counts.json",
+                                   params={"key": "3HOY8QuwJY4iFDPh6YbQ", "isbns": key[3]})
+                json_result = res.json()
+                key_d = dict(key.items())
+                key_d['total_reviews'] = json_result['books'][0]['ratings_count']
+                key_d['average_rating'] = json_result['books'][0]['average_rating']
+                result.append(key_d)
 
-        print(result)
+            print(result)
 
-        return render_template('books.html', result=[result, reviews, post_reviews])
+            return render_template('books.html', result=[result, reviews, post_reviews])
+        flash("There is no matching data for your search.")
+        return render_template('profile.html')
 
 
 @app.route("/adding_review", methods=['GET', 'POST'])
@@ -255,3 +262,12 @@ def books_api(isbns):
 
     json_obj = (creating_dict(book_data))
     return json_obj
+
+
+@app.route('/api', methods=['GET', 'POST'])
+def api():
+    if request.method == 'POST':
+        isbns = request.form.get('isbns')
+        print(isbns)
+        return redirect(url_for('books_api', isbns=isbns))
+    return render_template('api.html')
