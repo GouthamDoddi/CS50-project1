@@ -84,7 +84,7 @@ def register():
         else:
             print(f"The {username} and {password} have been added into the database.")
             flash(f"User '{username}' has been registered! Try logging in.")
-            return render_template('login.html')
+            return render_template('logIn.html')
     return render_template("register.html")
 
 
