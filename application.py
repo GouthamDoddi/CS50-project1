@@ -162,7 +162,11 @@ def books():
 
             print(review)
 
-            reviews.append(review)
+            if not review:
+                review = "Whoops... No reviews yet!"
+
+                reviews.append(review)
+
         print(reviews)
 
         # adding avg rating and no of reviews from site user review data
