@@ -126,7 +126,7 @@ def logout():
         if request.method == 'POST':
             session['logged_in'] = None
             flash("You have logged out. You can try logging in again if you want to visit the website.")
-            return render_template('Login.html')
+            return render_template('LogIn.html')
         return render_template('logout.html')
 
 
