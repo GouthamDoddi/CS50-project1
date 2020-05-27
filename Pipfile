@@ -8,9 +8,12 @@ verify_ssl = true
 [packages]
 psycopg2-binary = "*"
 gunicorn = "*"
+requests = "*"
 Flask = "*"
 Flask-Session = "*"
 SQLAlchemy = "*"
+Flask-SQLAlchemy = "*"
+werkzeug = "*"
 
 [requires]
 python_version = "3.8"

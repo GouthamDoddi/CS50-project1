@@ -7,10 +7,15 @@
 {% block content %}
 
     <div class="container">
-        <form class="form-group" action="{{ url_for('api') }}" method="get">
+        <br>
+        <form class="form-group" action="{{ url_for('api') }}" method="POST">
             <input class="form-control" type="text" name="isbns" placeholder="ISBN">
             <button class="btn btn-info">Submit</button>
         </form>
+        <small class="text-muted">Use the books ISBN key to search for the books data. Also the data will be
+        returned in JSON. </small><br>
+        <small style="color:blue">You can alternatively just perform a GET req to
+            https://pure-hamlet-02711.herokuapp.com/api/isbn </small>
     </div>
 
 {% endblock %}

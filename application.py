@@ -7,9 +7,10 @@ from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 import sqlalchemy
-from project1.models import db
+from .models import db
+import flask
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
@@ -36,26 +37,29 @@ def index():
 
 def logged_out(some_func):
     def wrap_func():
-      if 'logged_in' not in session.key():
-        return some_func()
-      else:
-          if session['logged_in'] is not None:
-              flash('User {} must log out first'.format(session['logged_in']))
-              return render_template('profile.html')
-          else:
-              return some_func()
+        if 'logged_in' not in session:
+            return some_func()
+        else:
+            if session['logged_in'] is not None:
+                flash('User {} must log out first'.format(session['logged_in']))
+                return render_template('profile.html')
+            else:
+                return some_func()
 
     wrap_func.__name__ = some_func.__name__
-    return wrap_fun
+    return wrap_func
 
 
 def logged_in(some_func):
     def wrap_func():
-        if session['logged_in'] is None:
-            flash('User must login first!')
-            return render_template('Login.html')
-        else:
+        if 'logged_in' not in session:
             return some_func()
+        else:
+            if session['logged_in'] is None:
+                flash('User must login first!')
+                return render_template('LogIn.html')
+            else:
+                return some_func()
 
     wrap_func.__name__ = some_func.__name__
     return wrap_func
@@ -81,7 +85,7 @@ def register():
         else:
             print(f"The {username} and {password} have been added into the database.")
             flash(f"User '{username}' has been registered! Try logging in.")
-            return render_template('login.html')
+            return render_template('LogIn.html')
     return render_template("register.html")
 
 
@@ -111,9 +115,9 @@ def login():
                 return render_template("profile.html")
             else:
                 flash("Improper credentials!")
-                return render_template('profile.html')
+                return render_template('LogIn.html')
 
-    return render_template("login.html")
+    return render_template("LogIn.html")
 
 
 @app.route("/logout", methods=['GET', 'POST'])
@@ -126,7 +130,7 @@ def logout():
         if request.method == 'POST':
             session['logged_in'] = None
             flash("You have logged out. You can try logging in again if you want to visit the website.")
-            return render_template('Login.html')
+            return render_template('LogIn.html')
         return render_template('logout.html')
 
 
@@ -148,59 +152,69 @@ def books():
                              .format(keyword, keyword, keyword)).fetchall()
         print(f"{results} is the matching books data")
 
+
         # The below func helps us to display all the site users's comments under
         # each book
-        for key2 in results:
-            review = db.execute("""SELECT * FROM review WHERE book = :isbn""", {'isbn': key2[3]}).fetchall()
+        if results:
+            for key2 in results:
+                review = db.execute("""SELECT * FROM review WHERE book = :isbn""", {'isbn': key2["isbn"]}).fetchall()
 
-            # creating dict objects for post_reviews list
-            post_review_dict = {'book': key2[3], 'reviewed_by': session['logged_in']}
-            post_reviews.append(post_review_dict)
+                # creating dict object that is later used to check the the review's post data.
+                post_review_dict = {'book': key2["isbn"], 'reviewed_by': session['logged_in']}
+                post_reviews.append(post_review_dict)
 
-            print(review)
+                print(review)
 
-            reviews.append(review)
-        print(reviews)
+                if not review:
+                    review = "Whoops... No reviews yet!"
 
-        # adding avg rating and no of reviews from site user review data
-        # for review in reviews:
-        #     if review is not []:
-        #         for each_review in review:
-        #             if each_review is []:
-        #                 continue
-        #             else:
-        #                 list_of_ratings.append(each_review[3])
-        #                 isbn = each_review[2]
-        #         total_reviews = len(list_of_ratings)
-        #         print(total_reviews)
-        #         if total_reviews == 0:
-        #             average_rating = 0
-        #             isbn = None
-        #         else:
-        #             average_rating = sum(list_of_ratings) // total_reviews
-        #         print(average_rating)
-        #         print(isbn)
-        #           db.execute("""UPDATE book SET average_rating = :average_rating, total_reviews = :total_reviews
-        #                    WHERE isbn=:isbn""",
-        #                     {'average_rating': average_rating, 'total_reviews': total_reviews, 'isbn': isbn})
-        #           db.commit()
+                    reviews.append(review)
+                else:
+                    reviews.append(review)
 
-        # the below fuc gets info fron good reads about reviews and displays it on site
-        for key in results:
-            print(key)
+            print(reviews)
 
-            books.append(key[3])
-            res = requests.get("https://www.goodreads.com/book/review_counts.json",
-                               params={"key": "3HOY8QuwJY4iFDPh6YbQ", "isbns": key[3]})
-            json_result = res.json()
-            key_d = dict(key.items())
-            key_d['total_reviews'] = json_result['books'][0]['ratings_count']
-            key_d['average_rating'] = json_result['books'][0]['average_rating']
-            result.append(key_d)
+            # adding avg rating and no of reviews from site user review data
+            # for review in reviews:
+            #     if review is not []:
+            #         for each_review in review:
+            #             if each_review is []:
+            #                 continue
+            #             else:
+            #                 list_of_ratings.append(each_review[3])
+            #                 isbn = each_review[2]
+            #         total_reviews = len(list_of_ratings)
+            #         print(total_reviews)
+            #         if total_reviews == 0:
+            #             average_rating = 0
+            #             isbn = None
+            #         else:
+            #             average_rating = sum(list_of_ratings) // total_reviews
+            #         print(average_rating)
+            #         print(isbn)
+            #           db.execute("""UPDATE book SET average_rating = :average_rating, total_reviews = :total_reviews
+            #                    WHERE isbn=:isbn""",
+            #                     {'average_rating': average_rating, 'total_reviews': total_reviews, 'isbn': isbn})
+            #           db.commit()
 
-        print(result)
+            # the below fuc gets info from good reads about reviews and displays it on site
+            for key in results:
+                print(key)
 
-        return render_template('books.html', result=[result, reviews, post_reviews])
+                books.append(key[3])
+                res = requests.get("https://www.goodreads.com/book/review_counts.json",
+                                   params={"key": "3HOY8QuwJY4iFDPh6YbQ", "isbns": key[3]})
+                json_result = res.json()
+                key_d = dict(key.items())
+                key_d['total_reviews'] = json_result['books'][0]['ratings_count']
+                key_d['average_rating'] = json_result['books'][0]['average_rating']
+                result.append(key_d)
+
+            print(result)
+
+            return render_template('books.html', result=[result, reviews, post_reviews])
+        flash("There is no matching data for your search.")
+        return render_template('profile.html')
 
 
 @app.route("/adding_review", methods=['GET', 'POST'])
@@ -245,5 +259,15 @@ def books_api(isbns):
     def creating_dict(row):
         api_dict = {'title': row[0], 'author': row[1], 'year': row[2], 'isbn': row[3]}
         return api_dict
+
     json_obj = (creating_dict(book_data))
     return json_obj
+
+
+@app.route('/api', methods=['GET', 'POST'])
+def api():
+    if request.method == 'POST':
+        isbns = request.form.get('isbns')
+        print(isbns)
+        return redirect(url_for('books_api', isbns=isbns))
+    return render_template('api.html')
