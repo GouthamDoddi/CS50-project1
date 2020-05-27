@@ -9,7 +9,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 import sqlalchemy
 from models import db
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
@@ -31,7 +31,7 @@ db = scoped_session(sessionmaker(bind=engine))
 
 @app.route("/")
 def index():
-    return render_template('templates/LogIn.html')
+    return render_template('LogIn.html')
 
 
 def logged_out(some_func):
@@ -41,7 +41,7 @@ def logged_out(some_func):
       else:
           if session['logged_in'] is not None:
               flash('User {} must log out first'.format(session['logged_in']))
-              return render_template('templates/profile.html')
+              return render_template('profile.html')
           else:
               return some_func()
 
@@ -53,7 +53,7 @@ def logged_in(some_func):
     def wrap_func():
         if session['logged_in'] is None:
             flash('User must login first!')
-            return render_template('templates/Login.html')
+            return render_template('Login.html')
         else:
             return some_func()
 
@@ -77,12 +77,12 @@ def register():
             db.commit()
         except sqlalchemy.exc.IntegrityError:
             flash("Username already exists. Please choose another.")
-            return render_template('templates/register.html')
+            return render_template('register.html')
         else:
             print(f"The {username} and {password} have been added into the database.")
             flash(f"User '{username}' has been registered! Try logging in.")
-            return render_template('templates/login.html')
-    return render_template("templates/register.html")
+            return render_template('login.html')
+    return render_template("register.html")
 
 
 @app.route("/login", methods=['POST', 'GET'])
