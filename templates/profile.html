@@ -8,10 +8,11 @@
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             <div class="notification is-danger">
-                <small style="color: green;">{{ messages[0] }}</small><br>
-            <small>Based on your search it could take a while to load data.Try
-            using author name or isbn as key or  full book name.</small>
+                <small style="color: green;">{{ messages[0] }}</small>
             </div>
         {% endif %}
     {% endwith %}
+    <small>Based on your search it could take a while to load data.Try
+            using author name or isbn as key or  full book name.</small>
+    <h3>Example:</h3><small>Stephen King, 0451169514(isbn), It(book name)</small>
 {% endblock %}
